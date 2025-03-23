@@ -294,6 +294,9 @@ const AppointmentOverview = ({ className = "" }: AppointmentOverviewProps) => {
     return true;
   });
 
+  // Sort appointments by start time
+  filteredAppointments.sort((a, b) => a.start.getTime() - b.start.getTime());
+
   // Handle appointment click
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
@@ -314,10 +317,15 @@ const AppointmentOverview = ({ className = "" }: AppointmentOverviewProps) => {
             <Tabs
               value={view}
               onValueChange={(v) => setView(v as "calendar" | "list")}
+              className="w-[200px]"
             >
-              <TabsList>
-                <TabsTrigger value="calendar">Kalender</TabsTrigger>
-                <TabsTrigger value="list">Liste</TabsTrigger>
+              <TabsList className="w-full">
+                <TabsTrigger value="calendar" className="flex-1">
+                  Kalender
+                </TabsTrigger>
+                <TabsTrigger value="list" className="flex-1">
+                  Liste
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -336,7 +344,11 @@ const AppointmentOverview = ({ className = "" }: AppointmentOverviewProps) => {
                     <Calendar
                       mode="single"
                       selected={selectedDate}
-                      onSelect={setSelectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        // Reset view to calendar when date changes
+                        setView("calendar");
+                      }}
                       className="mx-auto"
                     />
                   </div>
@@ -378,36 +390,20 @@ const AppointmentOverview = ({ className = "" }: AppointmentOverviewProps) => {
                         events={filteredAppointments}
                         startAccessor="start"
                         endAccessor="end"
-                        views={["day", "week", "month"]}
+                        views={["day"]}
                         defaultView="day"
                         date={selectedDate}
-                        onNavigate={setSelectedDate}
+                        toolbar={false}
                         components={{
                           event: AppointmentEvent,
                         }}
                         onSelectEvent={(event) =>
                           handleAppointmentClick(event as Appointment)
                         }
-                        messages={{
-                          today: "Heute",
-                          previous: "Zurück",
-                          next: "Weiter",
-                          month: "Monat",
-                          week: "Woche",
-                          day: "Tag",
-                          agenda: "Agenda",
-                          date: "Datum",
-                          time: "Zeit",
-                          event: "Termin",
-                          noEventsInRange: "Keine Termine in diesem Zeitraum",
-                        }}
                         formats={{
                           timeGutterFormat: (date) =>
                             moment(date).format("HH:mm"),
-                          dayHeaderFormat: (date) =>
-                            moment(date).format("dddd, DD. MMMM"),
-                          dayRangeHeaderFormat: ({ start, end }) =>
-                            `${moment(start).format("DD. MMM")} - ${moment(end).format("DD. MMM")}`,
+                          dayHeaderFormat: () => "",
                         }}
                         eventPropGetter={(event) => {
                           const appointment = event as Appointment;
